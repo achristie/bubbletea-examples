@@ -23,10 +23,6 @@ func checkServer() tea.Msg {
 	if err != nil {
 		return errMsg{err}
 	}
-	go func() {
-		time.Sleep(2 * time.Second)
-		
-	}
 	return statusMsg(res.StatusCode)
 }
 

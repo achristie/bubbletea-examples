@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -17,60 +16,79 @@ const (
 )
 
 var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
+var p *tea.Program
 
 func main() {
-	prog := progress.New(progress.WithScaledGradient("#FF7CCB", "#FDFF8C"))
+	p1 := progress.New(progress.WithScaledGradient("#FF7CCB", "#FDFF8C"))
+	p2 := progress.New(progress.WithScaledGradient("#DB9831", "#FDFF8C"))
+	p3 := progress.New(progress.WithScaledGradient("#FF83E9", "#FDFF8C"))
 
-	if err := tea.NewProgram(model{progress: prog}).Start(); err != nil {
-		fmt.Println("error!", err)
-		os.Exit(1)
-	}
+	p1.Width = 80
+	p2.Width = 80
+	p3.Width = 80
+	prog := make(map[string]progress.Model)
+	prog["assessments"] = p1
+	prog["symbols"] = p2
+	prog["deletes"] = p3
+
+	p = tea.NewProgram(model{progress: prog})
+
+	p.Start()
+
 }
-
-type tickMsg time.Time
 
 type model struct {
 	percent  float64
-	progress progress.Model
+	progress map[string]progress.Model
 }
 
 func (model) Init() tea.Cmd {
-	return tickCmd()
+	ch := make(chan (int))
+	returnData(ch)
+	return nil
 }
 
 func (m model) View() string {
 	pad := strings.Repeat(" ", padding)
-	return "\n" + pad + m.progress.ViewAs(m.percent) + "\n\n" + pad + helpStyle("press any key to quit")
+	s := ""
+	for k, v := range m.progress {
+		s += "\n" + pad + k + pad + v.ViewAs(m.percent) + "\n"
+	}
+
+	s += "\n\n" + pad + helpStyle("press any key to quit")
+	return s
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
+	switch msg.(type) {
 
 	case tea.KeyMsg:
 		return m, tea.Quit
 
-	case tea.WindowSizeMsg:
-		m.progress.Width = msg.Width - padding*2 - 4
-		if m.progress.Width > maxWidth {
-			m.progress.Width = maxWidth
-		}
-		return m, nil
+	// case tea.WindowSizeMsg:
+	// 	m.progress["symbols"].Width = msg.Width - padding*2 - 4
+	// 	if m.progress["symbols"].Width > maxWidth {
+	// 		m.progress["symbols"].Width = maxWidth
+	// 	}
+	// 	return m, nil
 
-	case tickMsg:
-		m.percent += 0.25
-		if m.percent > 1.0 {
-			m.percent = 1.0
-			return m, tea.Quit
-		}
-		return m, tickCmd()
+	case int:
+		m.percent += .01
+		return m, nil
 
 	default:
 		return m, nil
 	}
 }
 
-func tickCmd() tea.Cmd {
-	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
-		return tickMsg(t)
-	})
+func returnData(ch chan (int)) {
+	for i := 0; i < 50; i++ {
+		go func(i int) {
+
+			r := rand.Intn(10)
+			time.Sleep(time.Duration(r) * time.Second)
+			p.Send(i)
+		}(i)
+
+	}
 }

@@ -1,9 +1,7 @@
-package main
+package progress
 
 import (
-	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,9 +14,8 @@ const (
 )
 
 var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
-var p *tea.Program
 
-func main() {
+func NewProgress() *tea.Program {
 	p1 := progress.New(progress.WithScaledGradient("#FF7CCB", "#FDFF8C"))
 	p2 := progress.New(progress.WithScaledGradient("#DB9831", "#FDFF8C"))
 	p3 := progress.New(progress.WithScaledGradient("#FF83E9", "#FDFF8C"))
@@ -31,9 +28,8 @@ func main() {
 	prog["symbols"] = p2
 	prog["deletes"] = p3
 
-	p = tea.NewProgram(model{progress: prog})
-
-	p.Start()
+	p := tea.NewProgram(model{progress: prog})
+	return p
 
 }
 
@@ -43,8 +39,6 @@ type model struct {
 }
 
 func (model) Init() tea.Cmd {
-	ch := make(chan (int))
-	returnData(ch)
 	return nil
 }
 
@@ -81,14 +75,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
-func returnData(ch chan (int)) {
-	for i := 0; i < 50; i++ {
-		go func(i int) {
+// func returnData(ch chan (int)) {
+// 	for i := 0; i < 50; i++ {
+// 		go func(i int) {
 
-			r := rand.Intn(10)
-			time.Sleep(time.Duration(r) * time.Second)
-			p.Send(i)
-		}(i)
+// 			r := rand.Intn(10)
+// 			time.Sleep(time.Duration(r) * time.Second)
+// 			p.Send(i)
+// 		}(i)
 
-	}
-}
+// 	}
+// }
